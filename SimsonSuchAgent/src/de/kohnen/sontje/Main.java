@@ -30,6 +30,10 @@ public class Main {
 		new Main();
 	}
 	
+	
+/**
+ * Contructor
+ */
 	public Main(){
 		Main.debug(1, "Starte Programm");
 		getArtikel();
