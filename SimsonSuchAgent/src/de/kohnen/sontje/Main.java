@@ -36,7 +36,8 @@ public class Main {
  */
 	public Main(){
 		Main.debug(1, "Starte Programm");
-		getArtikel();
+		ShopQuery sq = new ShopQuery();
+		//getArtikel();
 		Main.debug(1, "Beende Programm");
 	}
 
@@ -63,7 +64,7 @@ public class Main {
 	}
 	
 	/**
-	 * Methode für Debug-Meldungen
+	 * Methode fï¿½r Debug-Meldungen
 	 * @param level Debug-Level
 	 * @param text Debug-Meldung
 	 */
