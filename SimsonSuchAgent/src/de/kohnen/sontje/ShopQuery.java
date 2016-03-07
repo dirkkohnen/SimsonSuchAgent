@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,8 +22,8 @@ public class ShopQuery {
         private String queryString = "";
         
         private int shopID = 1;
-        private Date start = new Date();
-        private Date ende = null;
+        private Timestamp start = new Timestamp(new Date().getTime());
+        private Timestamp ende = null;
         private int nSeiten = 0;
         private int nArtikel = 0;
         private String status = "abgeschlossen";
@@ -36,8 +37,8 @@ public class ShopQuery {
         try {
             con = DriverManager.getConnection(url, user, password);
             st = con.createStatement();
-            ende = new Date();
-            queryString = String.format("INSERT INTO `sontje_dev`.`QueryLog` (`ID`, `shopID`, `start`, `ende`, `nSeiten`, `nArtikel`, `status`, `meldung`) VALUES (NULL, '" + shopID + "', '" + start.getTime() + "', '" + ende.getTime() + "', '" + nSeiten + "', '" + nArtikel + "', '" + status + "', '" + meldung + "');");
+            ende = new Timestamp(new Date().getTime());
+            queryString = String.format("INSERT INTO `sontje_dev`.`QueryLog` (`ID`, `shopID`, `start`, `ende`, `nSeiten`, `nArtikel`, `status`, `meldung`) VALUES (NULL, '" + shopID + "', '" + start + "', '" + ende + "', '" + nSeiten + "', '" + nArtikel + "', '" + status + "', '" + meldung + "');");
             rs = st.executeUpdate(queryString);
 
  /*           if (rs.next()) {

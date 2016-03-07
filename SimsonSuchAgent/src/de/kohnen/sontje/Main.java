@@ -36,7 +36,8 @@ public class Main {
  */
 	public Main(){
 		Main.debug(1, "Starte Programm");
-		ShopQuery sq = new ShopQuery();
+		MySQLConnection.getShops();
+		//ShopQuery sq = new ShopQuery();
 		//getArtikel();
 		Main.debug(1, "Beende Programm");
 	}
