@@ -3,6 +3,8 @@
  */
 package de.kohnen.sontje;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 
 /**
@@ -13,8 +15,9 @@ public class Shop {
 
 	private int ID = 0;
 	private String name = "";
-	private String url = "";
-	private EShopArt art = null;
+	private String searchUrl = "";
+	private String itemUrl = "";
+	private String art = null;
 	private Timestamp timeCreated = null;
 	private Timestamp timeModified = null;
 	
@@ -22,12 +25,28 @@ public class Shop {
 	
 	}
 	
+	public Shop(ResultSet r){
+		try {
+			this.ID = r.getInt("ID");
+			this.name = r.getString("name");
+			this.searchUrl = r.getString("searchUrl");
+			this.itemUrl = r.getString("itemUrl");
+			this.art = r.getString("art");
+			this.timeCreated = r.getTimestamp("timeCreated");
+			this.timeModified = r.getTimestamp("timeCreated");
+		} catch (SQLException e) {
+			// TODO Automatisch generierter Erfassungsblock
+			e.printStackTrace();
+		}
+
+	}
+	
 	public int getID() {
 		return ID;
 	}
 
-	public void setID(int iD) {
-		ID = iD;
+	public void setID(int id) {
+		ID = id;
 	}
 
 	public String getName() {
@@ -38,19 +57,33 @@ public class Shop {
 		this.name = name;
 	}
 
-	public String getUrl() {
-		return url;
+	public String getSearchUrl() {
+		return searchUrl;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public void setSearchUrl(String url) {
+		this.searchUrl = url;
+	}
+
+	/**
+	 * @return itemUrl
+	 */
+	public String getItemUrl() {
+		return itemUrl;
+	}
+
+	/**
+	 * @param itemUrl das zu setzende Objekt itemUrl
+	 */
+	public void setItemUrl(String itemUrl) {
+		this.itemUrl = itemUrl;
 	}
 
 	public String getArt() {
-		return art.name();
+		return art;
 	}
 
-	public void setArt(EShopArt art) {
+	public void setArt(String art) {
 		this.art = art;
 	}
 
@@ -71,7 +104,7 @@ public class Shop {
 	}
 
 	public String toString(){
-		return String.format("Shop: %d, %s (%s)", this.ID, this.name, this.url);
+		return String.format("Shop: %d, %s (%s)", this.ID, this.name, this.searchUrl);
 	}
 	
 }

@@ -5,6 +5,7 @@ package de.kohnen.sontje;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Vector;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -22,6 +23,8 @@ public class Main {
 	private Elements elements;
 	private int nArtikel = 0;
 	private int nPages = 0;
+	
+	private Vector<Shop> vShops;
 
 	/**
 	 * @param args
@@ -36,32 +39,17 @@ public class Main {
  */
 	public Main(){
 		Main.debug(1, "Starte Programm");
-		MySQLConnection.getShops();
-		//ShopQuery sq = new ShopQuery();
+		vShops = MySQLConnection.getShops();
+		
+		for (Shop s: vShops){
+			ShopQuery sq = new ShopQuery(s);
+		}
 		//getArtikel();
 		Main.debug(1, "Beende Programm");
 	}
 
 	private void getArtikel(){
 		Main.debug(1, "Starte Methode 'getArtikel()'");
-		try {
-			for (int i = 1; i <= 708 ; i++ ){
-				Document doc = Jsoup.connect(shopPath+i).userAgent("Mozilla").timeout(10000).get();
-				this.elements = doc.getElementsByClass("product-title");
-				for (Element el : this.elements) {
-					nArtikel ++;
-					//System.out.println(el.text());
-				}
-				nPages++;
-				Main.debug(1, "auslesen seite " + nPages + " abgeschlossen");
-			
-			}
-			Main.debug(1, nPages + " Seiten ausgelesen");
-			Main.debug(1, nArtikel + " Artikel erkannt");
-		} catch (IOException e) {
-			Main.debug(0, "Fehler bei Seite: " + nPages + "und Artikel: " + nArtikel);
-			e.printStackTrace();
-		}
 	}
 	
 	/**

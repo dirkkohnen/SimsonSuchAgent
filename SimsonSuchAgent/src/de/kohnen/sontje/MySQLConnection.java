@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Vector;
 
 /**
  * @author dirk
@@ -48,32 +49,40 @@ public class MySQLConnection {
 		return conn;
 	}
 	
-	public static void getShops(){
+	public static Vector<Shop> getShops(){
 		conn = getInstance();
 		Shop shop = null;
+		Vector<Shop> v = new Vector<Shop>();
 		
 		if(conn != null){
-			// Anfrage-Statement erzeugen.
 			Statement query;
 			try {
 				query = conn.createStatement();
 	 
-				// Ergebnistabelle erzeugen und abholen.
 				String sql = "SELECT * FROM Shop";
 				ResultSet result = query.executeQuery(sql);
 	 
-				// Ergebnissätze durchfahren.
 				while (result.next()) {
-					shop = new Shop();
-					shop.setID(result.getInt("ID"));
-					shop.setName(result.getString("name"));
-					shop.setUrl(result.getString("url"));
-					System.out.println(shop.toString());
+					shop = new Shop(result);
+					v.add(shop);
 				}
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 		}
+		return v;
+	}
+	
+	public static boolean getFirstQuery(int id){
+		conn = getInstance();
+		if(conn != null){
+			Statement query;
+			try {
+				query = conn.createStatement();
+	 
+				String sql = "SELECT ID FROM Shop";
+				ResultSet result = query.executeQuery(sql);
+		
 	}
 	 
 
