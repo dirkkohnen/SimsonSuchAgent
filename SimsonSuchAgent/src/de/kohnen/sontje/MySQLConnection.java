@@ -73,15 +73,24 @@ public class MySQLConnection {
 		return v;
 	}
 	
-	public static boolean getFirstQuery(int id){
+	public static boolean isFirstQuery(int id){
 		conn = getInstance();
+		boolean fq = true;
 		if(conn != null){
 			Statement query;
 			try {
 				query = conn.createStatement();
 	 
-				String sql = "SELECT ID FROM Shop";
+				String sql = "SELECT COUNT(*) AS count FROM ShopArtikelZuordnung WHERE shopID = " + id + ";";
 				ResultSet result = query.executeQuery(sql);
+				if (result.getInt("count") > 0){
+					fq = false;
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		return fq;
 		
 	}
 	 
