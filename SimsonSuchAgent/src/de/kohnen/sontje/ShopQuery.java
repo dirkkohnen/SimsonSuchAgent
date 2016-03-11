@@ -18,25 +18,25 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class ShopQuery {
-		private Connection con = null;
-		private Statement st = null;
-		private int rs = 0;
+	private Connection con = null;
+	private Statement st = null;
+	private int rs = 0;
 
-        //INSERT INTO `sontje_dev`.`QueryLog` (`ID`, `shopID`, `start`, `ende`, `nSeiten`, `nArtikel`, `status`, `meldung`) VALUES (NULL, '%d', %s, '%s', '%d', '%d', '%s', '%s');";
-        private String queryString = "";
+    //INSERT INTO `sontje_dev`.`QueryLog` (`ID`, `shopID`, `start`, `ende`, `nSeiten`, `nArtikel`, `status`, `meldung`) VALUES (NULL, '%d', %s, '%s', '%d', '%d', '%s', '%s');";
+    private String queryString = "";
         
-        private int shopID = 1;
-        private Timestamp start = new Timestamp(new Date().getTime());
-        private Timestamp ende = null;
-        private int nSeiten = 0;
-        private int nArtikel = 0;
-        private String status = "abgeschlossen";
-        private String meldung = "Erster Test mit der KLasse ShopQuery";
-    	private Elements elements;
-    	private String shopPath = "";
-    	private Shop shop;
+    private int shopID = 1;
+	private Timestamp start = new Timestamp(new Date().getTime());
+	private Timestamp ende = null;
+	private int nSeiten = 0;
+	private int nArtikel = 0;
+	private String status = "abgeschlossen";
+	private String meldung = "Erster Test mit der KLasse ShopQuery";
+	private Elements elements;
+	private String shopPath = "";
+	private Shop shop;
     	
-    	private Vector<String> artikelLinkListe;
+	private Vector<String> artikelLinkListe = new Vector<String>();
        
 	/**
 	 * Constructor
@@ -49,40 +49,52 @@ public class ShopQuery {
 		
  	}
 	
-        private void updateArtikel(){
-    		shopPath = shop.getSearchUrl();
-    		// holt die Liste mit Links auf die Einzelartikel;
-    		try {
-    			for (int i = 1; i <= 708 ; i++ ){
-    				Document doc = Jsoup.connect(shopPath+i).userAgent("Mozilla").timeout(10000).get();
-    				this.elements = doc.getElementsByClass("single-product");
-    				for (Element el : this.elements) {
-    					Elements links = el.getElementsByTag("a");
-    					for (Element link : links) {
-    						artikelLinkListe.add(link.attr("href"));
-    					}
-    					nArtikel ++;
-    					//System.out.println(el.text());
-    				}
-    				nSeiten++;
-    				Main.debug(1, "auslesen seite " + nSeiten + " abgeschlossen");
+	private void updateArtikel(){
+		shopPath = shop.getSearchUrl();
+		// holt die Liste mit Links auf die Einzelartikel;
+		try {
+			for (int i = 1; i <= 3 ; i++ ){
+				Document doc = Jsoup.connect(shopPath+i).userAgent("Mozilla").timeout(10000).get();
+				this.elements = doc.getElementsByClass("single-product");
+				for (Element el : this.elements) {
+					Elements links = el.getElementsByTag("a");
+					for (Element link : links) {
+						artikelLinkListe.add(link.attr("href"));
+					}
+					nArtikel ++;
+					//System.out.println(el.text());
+				}
+				nSeiten++;
+				Main.debug(1, "auslesen seite " + nSeiten + " abgeschlossen");
     			
-    			}
-    			Main.debug(1, nSeiten + " Seiten ausgelesen");
-    			Main.debug(1, nArtikel + " Artikel erkannt");
-    		} catch (IOException e) {
-    			Main.debug(0, "Fehler bei Seite: " + nSeiten + "und Artikel: " + nArtikel);
-    			e.printStackTrace();
-    		}
+			}
+			Main.debug(1, nSeiten + " Seiten ausgelesen");
+			Main.debug(1, nArtikel + " Artikel erkannt");
+		} catch (IOException e) {
+			Main.debug(0, "Fehler bei Seite: " + nSeiten + "und Artikel: " + nArtikel);
+			e.printStackTrace();
+		}
     		
-    		// geht die Liste mit den Links auf die Artikel durch
-    		try {
-    			    		
-
-    		} catch (IOException e) {
-    			Main.debug(0, "Fehler bei Seite: " + nSeiten + "und Artikel: " + nArtikel);
-    			e.printStackTrace();
-    		}
+		// geht die Liste mit den Links auf die Artikel durchartikelLinkListe.size()
+		try {
+			Artikel artikel;
+			for (int i = 1; i < 5 ; i++ ){
+				artikel = new Artikel();
+				Document doc = Jsoup.connect(artikelLinkListe.elementAt(i)).userAgent("Mozilla").timeout(10000).get();
+				Element el = doc.getElementById("product-description");
+				artikel.setBeschreibung(el.text());
+				el = doc.getElementById("product-properties");
+				Elements e = el.getElementsByClass("col-xs-6");
+				artikel.setArtikelNr(e.get(1).text());
+				artikel.setHersteller(e.get(3).text());
+				artikel.setHerstellerNr(e.get(5).text());
+				artikel.setEan(e.get(7).text());
+				System.out.println(artikel.toString());
+			}
+		} catch (IOException e) {
+			Main.debug(0, "Fehler bei Seite: " + nSeiten + "und Artikel: " + nArtikel);
+			e.printStackTrace();
+		}
 /*            try {
                 ende = new Timestamp(new Date().getTime());
                 queryString = String.format("INSERT INTO `sontje_dev`.`QueryLog` (`ID`, `shopID`, `start`, `ende`, `nSeiten`, `nArtikel`, `status`, `meldung`) VALUES (NULL, '" + shopID + "', '" + start + "', '" + ende + "', '" + nSeiten + "', '" + nArtikel + "', '" + status + "', '" + meldung + "');");

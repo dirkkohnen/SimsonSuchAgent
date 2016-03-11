@@ -84,6 +84,7 @@ public class MySQLConnection {
 	 
 				String sql = "SELECT COUNT(*) AS count FROM ShopArtikelZuordnung WHERE shopID = " + id + ";";
 				ResultSet result = query.executeQuery(sql);
+				result.next();
 				if (result.getInt("count") > 0){
 					fq = false;
 				}
