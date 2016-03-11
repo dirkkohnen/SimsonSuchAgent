@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 import java.util.Vector;
 
 /**
@@ -94,6 +95,28 @@ public class MySQLConnection {
 		
 	}
 	 
+	public static HashMap getArtikelHashMap(){
+		HashMap<String, Integer> hm = new HashMap<String, Integer>();
+		conn = getInstance();
 
+		if(conn != null){
+			Statement query;
+			try {
+				query = conn.createStatement();
+	 
+				String sql = "SELECT ID,ean FROM Artikel";
+				ResultSet result = query.executeQuery(sql);
+	 
+				while (result.next()) {
+					hm.put(result.getString("ean"), result.getInt("ID"));
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
+		return hm;
+	}
 		 
 }

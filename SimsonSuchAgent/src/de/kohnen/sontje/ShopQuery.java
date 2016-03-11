@@ -74,7 +74,15 @@ public class ShopQuery {
     			Main.debug(0, "Fehler bei Seite: " + nSeiten + "und Artikel: " + nArtikel);
     			e.printStackTrace();
     		}
+    		
+    		// geht die Liste mit den Links auf die Artikel durch
+    		try {
+    			    		
 
+    		} catch (IOException e) {
+    			Main.debug(0, "Fehler bei Seite: " + nSeiten + "und Artikel: " + nArtikel);
+    			e.printStackTrace();
+    		}
 /*            try {
                 ende = new Timestamp(new Date().getTime());
                 queryString = String.format("INSERT INTO `sontje_dev`.`QueryLog` (`ID`, `shopID`, `start`, `ende`, `nSeiten`, `nArtikel`, `status`, `meldung`) VALUES (NULL, '" + shopID + "', '" + start + "', '" + ende + "', '" + nSeiten + "', '" + nArtikel + "', '" + status + "', '" + meldung + "');");
