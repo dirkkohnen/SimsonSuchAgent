@@ -9,6 +9,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -96,7 +98,7 @@ public class MySQLConnection {
 		
 	}
 	 
-	public static HashMap getArtikelHashMap(){
+	public static HashMap<String, Integer> getArtikelHashMap(){
 		HashMap<String, Integer> hm = new HashMap<String, Integer>();
 		conn = getInstance();
 
@@ -115,9 +117,30 @@ public class MySQLConnection {
 				e.printStackTrace();
 			}
 		}
-		
-		
 		return hm;
 	}
-		 
+	
+	public static void updateArtikel(){
+		
+	}
+	
+	public static void insertArtikel(Artikel a){
+		conn = getInstance();
+		Timestamp current = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
+
+		if(conn != null){
+			Statement query;
+			int result;
+			try {
+				query = conn.createStatement();
+				String sql = String.format("INSERT INTO `Artikel`(`ean`, `artikelNr`, `hersteller`, `herstellerNr`, `simsonNr`, `titel`, `image`, "
+						+ "`beschreibung`, `timeCreated`, `timeModified`) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')", a.getEan(),
+						a.getArtikelNr(), a.getHersteller(), a.getHerstellerNr(), a.getSimsonNr(), a.getTitel(), a.getImageUrl(), a.getBeschreibung(), current,current);
+				result = query.executeUpdate(sql);
+			} catch (SQLException ex) {
+				ex.printStackTrace();
+			} finally {
+			}
+		}
+	}
 }

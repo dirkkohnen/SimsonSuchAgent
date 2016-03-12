@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,6 +38,7 @@ public class ShopQuery {
 	private Shop shop;
     	
 	private Vector<String> artikelLinkListe = new Vector<String>();
+	private HashMap<String, Integer> vorhandeneArtikel;
        
 	/**
 	 * Constructor
@@ -62,11 +64,9 @@ public class ShopQuery {
 						artikelLinkListe.add(link.attr("href"));
 					}
 					nArtikel ++;
-					//System.out.println(el.text());
 				}
 				nSeiten++;
 				Main.debug(1, "auslesen seite " + nSeiten + " abgeschlossen");
-    			
 			}
 			Main.debug(1, nSeiten + " Seiten ausgelesen");
 			Main.debug(1, nArtikel + " Artikel erkannt");
@@ -74,53 +74,37 @@ public class ShopQuery {
 			Main.debug(0, "Fehler bei Seite: " + nSeiten + "und Artikel: " + nArtikel);
 			e.printStackTrace();
 		}
+		
+		//Holt die Liste vorhandener Artikel aus der Dantenbank
+		vorhandeneArtikel = MySQLConnection.getArtikelHashMap();
     		
 		// geht die Liste mit den Links auf die Artikel durchartikelLinkListe.size()
 		try {
 			Artikel artikel;
+			Element elementsDescription;
+			Element elementProperties;
+			Elements subElementsProperties;
 			for (int i = 1; i < 5 ; i++ ){
-				artikel = new Artikel();
-				Document doc = Jsoup.connect(artikelLinkListe.elementAt(i)).userAgent("Mozilla").timeout(10000).get();
-				Element el = doc.getElementById("product-description");
-				artikel.setBeschreibung(el.text());
-				el = doc.getElementById("product-properties");
-				Elements e = el.getElementsByClass("col-xs-6");
-				artikel.setArtikelNr(e.get(1).text());
-				artikel.setHersteller(e.get(3).text());
-				artikel.setHerstellerNr(e.get(5).text());
-				artikel.setEan(e.get(7).text());
-				System.out.println(artikel.toString());
+				Document doc = Jsoup.connect(artikelLinkListe.elementAt(i)).userAgent("Mozilla").timeout(10000).get(); // Holt die Artikelseite
+				elementsDescription = doc.getElementById("product-description"); //Holt den Beschreibungs-Tag
+				elementProperties = doc.getElementById("product-properties"); //Holt die Properties-Tags
+				subElementsProperties = elementProperties.getElementsByClass("col-xs-6");
+				if (vorhandeneArtikel.containsKey(subElementsProperties.get(7).text())){
+					
+				}else{
+					artikel = new Artikel();
+					artikel.setBeschreibung(elementsDescription.text());
+					artikel.setArtikelNr(subElementsProperties.get(1).text());
+					artikel.setHersteller(subElementsProperties.get(3).text());
+					artikel.setHerstellerNr(subElementsProperties.get(5).text());
+					artikel.setEan(subElementsProperties.get(7).text());
+					MySQLConnection.insertArtikel(artikel);
+					System.out.println(artikel.toString());
+				}
+				
 			}
 		} catch (IOException e) {
-			Main.debug(0, "Fehler bei Seite: " + nSeiten + "und Artikel: " + nArtikel);
 			e.printStackTrace();
 		}
-/*            try {
-                ende = new Timestamp(new Date().getTime());
-                queryString = String.format("INSERT INTO `sontje_dev`.`QueryLog` (`ID`, `shopID`, `start`, `ende`, `nSeiten`, `nArtikel`, `status`, `meldung`) VALUES (NULL, '" + shopID + "', '" + start + "', '" + ende + "', '" + nSeiten + "', '" + nArtikel + "', '" + status + "', '" + meldung + "');");
-                rs = st.executeUpdate(queryString);
-            } catch (SQLException ex) {
-                Logger lgr = Logger.getLogger(ShopQuery.class.getName());
-                lgr.log(Level.SEVERE, ex.getMessage(), ex);
-
-            } finally {
-                try {
-                    if (st != null) {
-                        st.close();
-                    }
-                    if (con != null) {
-                        con.close();
-                    }
-                } catch (SQLException ex) {
-                    Logger lgr = Logger.getLogger(ShopQuery.class.getName());
-                    lgr.log(Level.WARNING, ex.getMessage(), ex);
-                }
-            }*/
-        }
-        
-        private void updatePreise(){
-        	
-        }
-		
-	
+	}
 }
