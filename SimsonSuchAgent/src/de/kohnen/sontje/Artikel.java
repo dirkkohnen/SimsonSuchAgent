@@ -13,7 +13,6 @@ public class Artikel {
 
 	private int ID = 0;
 	private String ean = "";
-	private String artikelNr = "";
 	private String hersteller = "";
 	private String herstellerNr = "";
 	private String simsonNr = "";
@@ -54,20 +53,6 @@ public class Artikel {
 	 */
 	public void setEan(String ean) {
 		this.ean = ean;
-	}
-
-	/**
-	 * @return ArtikelNummer
-	 */
-	public String getArtikelNr() {
-		return this.artikelNr;
-	}
-
-	/**
-	 * @param hersteller das zu setzende Objekt hersteller
-	 */
-	public void setArtikelNr(String artikelNr) {
-		this.artikelNr = artikelNr;
 	}
 
 	/**
@@ -184,7 +169,7 @@ public class Artikel {
 	
 	public String toString(){
 		return "ID: " + this.ID + "\r\nTitel: " + this.titel + "\r\nBeschreibung: " + this.beschreibung + "\r\nEAN: " + this.ean + "\r\nHersteller: " + this.hersteller + 
-				"\r\nHersteller-Nr.:" + this.herstellerNr + "\r\nArtikel-Nr.: " + this.artikelNr;
+				"\r\nHersteller-Nr.:" + this.herstellerNr;
 	}
 
 }

@@ -44,14 +44,16 @@ public class ShopQuery {
 	 * Constructor
 	 */
 	public ShopQuery(Shop s){
+		Main.debug(1, "Shopquery gestartet");
 		this.shop = s;
-		if (MySQLConnection.isFirstQuery(shop.getID())){
+//		if (MySQLConnection.isFirstQuery(shop.getID())){
 			this.updateArtikel();
-		}
+//		}
 		
  	}
 	
 	private void updateArtikel(){
+		Main.debug(0, "Methode ShopQuery->UpdateArtikel gestartet");
 		shopPath = shop.getSearchUrl();
 		// holt die Liste mit Links auf die Einzelartikel;
 		try {
@@ -84,27 +86,38 @@ public class ShopQuery {
 			Element elementsDescription;
 			Element elementProperties;
 			Elements subElementsProperties;
+			String preisString;
+			int artikelId = 0;
 			for (int i = 1; i < 5 ; i++ ){
 				Document doc = Jsoup.connect(artikelLinkListe.elementAt(i)).userAgent("Mozilla").timeout(10000).get(); // Holt die Artikelseite
 				elementsDescription = doc.getElementById("product-description"); //Holt den Beschreibungs-Tag
 				elementProperties = doc.getElementById("product-properties"); //Holt die Properties-Tags
 				subElementsProperties = elementProperties.getElementsByClass("col-xs-6");
-				if (vorhandeneArtikel.containsKey(subElementsProperties.get(7).text())){
-					
-				}else{
+				//prüft ob der Artikel angelegt und legt ihn ggf. an
+				if (!vorhandeneArtikel.containsKey(subElementsProperties.get(7).text())){
 					artikel = new Artikel();
 					artikel.setBeschreibung(elementsDescription.text());
-					artikel.setArtikelNr(subElementsProperties.get(1).text());
 					artikel.setHersteller(subElementsProperties.get(3).text());
 					artikel.setHerstellerNr(subElementsProperties.get(5).text());
 					artikel.setEan(subElementsProperties.get(7).text());
-					MySQLConnection.insertArtikel(artikel);
+					artikelId = MySQLConnection.insertArtikel(artikel);
 					System.out.println(artikel.toString());
+				}else{
+					artikelId = vorhandeneArtikel.get(subElementsProperties.get(7).text());
 				}
+				//liest den Preis aus
+				preisString = doc.getElementsByClass("js-container-price").first().text();
+				preisString = preisString.substring(0, preisString.length()-2);
+				preisString = preisString.replace(",", ".");
+				//aktuaisiert den Preis
+					MySQLConnection.updatePreis(this.shop.getID(), artikelId, subElementsProperties.get(1).text(), preisString);
+				
 				
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
+			Main.debug(0, "Fehler in Methode ShopQuery->UpdateArtikel: " + e.getMessage());
 		}
+		Main.debug(0, "Methode ShopQuery->UpdateArtikel beendet");
 	}
 }

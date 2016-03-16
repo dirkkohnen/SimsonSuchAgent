@@ -40,8 +40,11 @@ public class Main {
 	public Main(){
 		Main.debug(1, "Starte Programm");
 		vShops = MySQLConnection.getShops();
+		Main.debug(1, "Shops Geladen: " + vShops.size());
 		
+		int i = 0;
 		for (Shop s: vShops){
+			Main.debug(1, "Rufe " + ++i + ". Shop ab");
 			ShopQuery sq = new ShopQuery(s);
 		}
 		//getArtikel();

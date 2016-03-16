@@ -120,11 +120,8 @@ public class MySQLConnection {
 		return hm;
 	}
 	
-	public static void updateArtikel(){
-		
-	}
-	
-	public static void insertArtikel(Artikel a){
+	public static void updatePreis(int shopId, int artikelId, String artikelNr, String preis){
+		//INSERT INTO `ShopArtikelZuordnung`(`ID`, `shopID`, `artikelID`, `artikelNr`, `preis`, `timeCreated`, `timeModified`) VALUES ([value-1],[value-2],[value-3],[value-4],[value-5],[value-6],[value-7])
 		conn = getInstance();
 		Timestamp current = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
 
@@ -133,14 +130,39 @@ public class MySQLConnection {
 			int result;
 			try {
 				query = conn.createStatement();
-				String sql = String.format("INSERT INTO `Artikel`(`ean`, `artikelNr`, `hersteller`, `herstellerNr`, `simsonNr`, `titel`, `image`, "
-						+ "`beschreibung`, `timeCreated`, `timeModified`) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')", a.getEan(),
-						a.getArtikelNr(), a.getHersteller(), a.getHerstellerNr(), a.getSimsonNr(), a.getTitel(), a.getImageUrl(), a.getBeschreibung(), current,current);
+				String sql = String.format("INSERT INTO `ShopArtikelZuordnung`(`shopID`, `artikelID`, `artikelNr`, `preis`, `timeCreated`, `timeModified`) VALUES ('%d','%d','%s','%s','%s','%s')",
+						shopId, artikelId, artikelNr, preis, current, current);
 				result = query.executeUpdate(sql);
 			} catch (SQLException ex) {
 				ex.printStackTrace();
 			} finally {
 			}
 		}
+	}
+	
+	public static int insertArtikel(Artikel a){
+		int generatedId = -1;
+		conn = getInstance();
+		Timestamp current = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
+
+		if(conn != null){
+			Statement query;
+			ResultSet result;
+			try {
+				query = conn.createStatement();
+				String sql = String.format("INSERT INTO `Artikel`(`ean`, `hersteller`, `herstellerNr`, `simsonNr`, `titel`, `image`, "
+						+ "`beschreibung`, `timeCreated`, `timeModified`) VALUES ('%s','%s','%s','%s','%s','%s','%s','%s','%s')", a.getEan(),
+						a.getHersteller(), a.getHerstellerNr(), a.getSimsonNr(), a.getTitel(), a.getImageUrl(), a.getBeschreibung(), current,current);
+				query.executeUpdate(sql, Statement.RETURN_GENERATED_KEYS);
+				result =  query.getGeneratedKeys();
+				if (result.next()) {
+					generatedId = result.getInt(1);
+				}
+			} catch (SQLException ex) {
+				ex.printStackTrace();
+			} finally {
+			}
+		}
+		return generatedId;
 	}
 }
