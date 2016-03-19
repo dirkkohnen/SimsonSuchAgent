@@ -1,17 +1,10 @@
 package de.kohnen.sontje;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,23 +12,10 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class ShopQuery {
-	private Connection con = null;
-	private Statement st = null;
-	private int rs = 0;
-
-    //INSERT INTO `sontje_dev`.`QueryLog` (`ID`, `shopID`, `start`, `ende`, `nSeiten`, `nArtikel`, `status`, `meldung`) VALUES (NULL, '%d', %s, '%s', '%d', '%d', '%s', '%s');";
-    private String queryString = "";
-        
-    private int shopID = 1;
-	private Timestamp start = new Timestamp(new Date().getTime());
-	private Timestamp ende = null;
 	private int nSeiten = 0;
 	private int nArtikel = 0;
-	private String status = "abgeschlossen";
-	private String meldung = "Erster Test mit der KLasse ShopQuery";
-	private Elements elements;
-	private String shopPath = "";
 	private Shop shop;
+	private QueryLog ql;
     	
 	private Vector<String> artikelLinkListe = new Vector<String>();
 	private HashMap<String, Integer> vorhandeneArtikel;
@@ -44,80 +24,148 @@ public class ShopQuery {
 	 * Constructor
 	 */
 	public ShopQuery(Shop s){
-		Main.debug(1, "Shopquery gestartet");
+		Main.debug(1, String.format("Shopquery für (%d, %s) gestartet", s.getID(), s.getName()));
+		
+		// Erstellt den QueryLog 
+		ql = new QueryLog(s.getID(), new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
+		
 		this.shop = s;
-//		if (MySQLConnection.isFirstQuery(shop.getID())){
-			this.updateArtikel();
-//		}
+		
+		//Holt die Artikelliste aus der Datenbank
+		this.getArtikelListeFromDb();
+		
+		//Holt die Artikelliste aus dem Shop
+		this.getArtikelListeFromShop();
+		
+		//Holt die Artikel aus dem Shop
+		this.getArtikelFromShop();
+		
+		this.ql.setEnde(new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
+		this.ql.setStatus("Erfolgreich abgeschlossen");
+		this.ql.setnArtikel(this.nArtikel);
+		this.ql.setnSeiten(this.nSeiten);
+		this.ql.setMeldung(String.format("ShopQuery für %s abgeschlossen. Ergebenis:\r\nSeiten: %d\r\nArtikel %d",this.shop.getName(), this.nSeiten, this.nArtikel));
+		MySQLConnection.insertQueryLog(this.ql);
 		
  	}
 	
-	private void updateArtikel(){
-		Main.debug(0, "Methode ShopQuery->UpdateArtikel gestartet");
-		shopPath = shop.getSearchUrl();
+	private void getArtikelListeFromDb(){
+		Main.debug(2, "Hole ArtikelListe aus DB");
+		
+		//Holt die Liste vorhandener Artikel aus der Dantenbank
+		this.vorhandeneArtikel = MySQLConnection.getArtikelHashMap();
+		
+		Main.debug(2, "ArtikelListe für aus der Datenbank geholt");
+
+	}
+	
+	private void getArtikelListeFromShop(){
+		Main.debug(2, String.format("Hole ArtikelListe für Shop: %s", this.shop.getName()));
+		
+		Elements elements;
+		String shopPath = this.shop.getSearchUrl();
 		// holt die Liste mit Links auf die Einzelartikel;
 		try {
-			for (int i = 1; i <= 3 ; i++ ){
+			for (int i = 1; i <= 305 ; i++ ){
 				Document doc = Jsoup.connect(shopPath+i).userAgent("Mozilla").timeout(10000).get();
-				this.elements = doc.getElementsByClass("single-product");
-				for (Element el : this.elements) {
+				elements = doc.getElementsByClass("single-product");
+				for (Element el : elements) {
 					Elements links = el.getElementsByTag("a");
 					for (Element link : links) {
 						artikelLinkListe.add(link.attr("href"));
 					}
-					nArtikel ++;
+					this.nArtikel ++;
 				}
-				nSeiten++;
-				Main.debug(1, "auslesen seite " + nSeiten + " abgeschlossen");
+				this.nSeiten++;
+				Main.debug(2, String.format("Auslesen Seite %d abgeschlossen", this.nSeiten));
 			}
-			Main.debug(1, nSeiten + " Seiten ausgelesen");
-			Main.debug(1, nArtikel + " Artikel erkannt");
-		} catch (IOException e) {
-			Main.debug(0, "Fehler bei Seite: " + nSeiten + "und Artikel: " + nArtikel);
+		} catch (Exception e) {
+			this.ql.setEnde(new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
+			this.ql.setStatus("Abgebrochen (Fehler)");
+			this.ql.setnArtikel(this.nArtikel);
+			this.ql.setnSeiten(this.nSeiten);
+			this.ql.setMeldung(e.getMessage());
+			MySQLConnection.insertQueryLog(this.ql);
+			Main.debug(0, String.format("Fehler bei Seite: %d", this.nSeiten));
 			e.printStackTrace();
 		}
-		
-		//Holt die Liste vorhandener Artikel aus der Dantenbank
-		vorhandeneArtikel = MySQLConnection.getArtikelHashMap();
-    		
+		Main.debug(2, String.format("ArtikelListe für %s geholt; Ergebnis: %d Seiten und %d Artikel", this.shop.getName(), this.nSeiten, this.nArtikel));
+	}
+	
+	private void getArtikelFromShop(){
+		Main.debug(2, String.format("Hole Artikel für Shop: %s", this.shop.getName()));
+		int aktuellerArtikel = 0;
+		Artikel artikel;
+		Element elementsDescription;
+		Element elementProperties;
+		Elements subElementsProperties;
+		String preisString;
+		int artikelId = 0;
+		String ean;
+		String artikelNr;
+		String herstellerNr;
+		String hersteller;
+		String titel;
+
 		// geht die Liste mit den Links auf die Artikel durchartikelLinkListe.size()
 		try {
-			Artikel artikel;
-			Element elementsDescription;
-			Element elementProperties;
-			Elements subElementsProperties;
-			String preisString;
-			int artikelId = 0;
-			for (int i = 1; i < 5 ; i++ ){
+			for (int i = 0; i < nArtikel ; i++ ){
+				aktuellerArtikel = i;
+				ean = "";
+				artikelNr = "";
+				herstellerNr = "";
+				hersteller = "";
+				titel = "";
 				Document doc = Jsoup.connect(artikelLinkListe.elementAt(i)).userAgent("Mozilla").timeout(10000).get(); // Holt die Artikelseite
 				elementsDescription = doc.getElementById("product-description"); //Holt den Beschreibungs-Tag
 				elementProperties = doc.getElementById("product-properties"); //Holt die Properties-Tags
+				titel = doc.getElementsByTag("h1").first().text();
 				subElementsProperties = elementProperties.getElementsByClass("col-xs-6");
+				for (int j = 0 ; j < subElementsProperties.size(); j+=2){
+					if (subElementsProperties.get(j).text().compareTo("Artikel-Nr.") == 0){
+						artikelNr = subElementsProperties.get(j+1).text();
+					} else if (subElementsProperties.get(j).text().compareTo("Hersteller-Nr.") == 0){
+						herstellerNr = subElementsProperties.get(j+1).text();
+					} else if (subElementsProperties.get(j).text().compareTo("EAN") == 0){
+						ean = subElementsProperties.get(j+1).text();
+					} else if (subElementsProperties.get(j).text().compareTo("Hersteller") == 0){
+						hersteller = subElementsProperties.get(j+1).text();
+					}				
+				}
+				
 				//prüft ob der Artikel angelegt und legt ihn ggf. an
-				if (!vorhandeneArtikel.containsKey(subElementsProperties.get(7).text())){
+				if (!vorhandeneArtikel.containsKey(ean)){
 					artikel = new Artikel();
+					artikel.setTitel(titel);
 					artikel.setBeschreibung(elementsDescription.text());
-					artikel.setHersteller(subElementsProperties.get(3).text());
-					artikel.setHerstellerNr(subElementsProperties.get(5).text());
-					artikel.setEan(subElementsProperties.get(7).text());
+					artikel.setHersteller(hersteller);
+					artikel.setHerstellerNr(herstellerNr);
+					artikel.setEan(ean);
 					artikelId = MySQLConnection.insertArtikel(artikel);
 					System.out.println(artikel.toString());
 				}else{
-					artikelId = vorhandeneArtikel.get(subElementsProperties.get(7).text());
+					artikelId = vorhandeneArtikel.get(ean);
 				}
+
 				//liest den Preis aus
 				preisString = doc.getElementsByClass("js-container-price").first().text();
 				preisString = preisString.substring(0, preisString.length()-2);
 				preisString = preisString.replace(",", ".");
-				//aktuaisiert den Preis
-					MySQLConnection.updatePreis(this.shop.getID(), artikelId, subElementsProperties.get(1).text(), preisString);
-				
-				
+
+				//aktuallisiert den Preis
+				MySQLConnection.updatePreis(this.shop.getID(), artikelId, subElementsProperties.get(1).text(), preisString);
 			}
-		} catch (IOException e) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			Main.debug(0, "Fehler in Methode ShopQuery->UpdateArtikel: " + e.getMessage());
+			this.ql.setEnde(new java.sql.Timestamp(Calendar.getInstance().getTime().getTime()));
+			this.ql.setStatus("Abgebrochen (Fehler)");
+			this.ql.setnArtikel(this.nArtikel);
+			this.ql.setnSeiten(this.nSeiten);
+			this.ql.setMeldung(String.format("Fehler bei Artikel: %d\r\n Meldung: %s", aktuellerArtikel, e.getMessage()));
+			MySQLConnection.insertQueryLog(this.ql);
+			Main.debug(0, String.format("Fehler bei Artikel: %d", aktuellerArtikel));
 		}
-		Main.debug(0, "Methode ShopQuery->UpdateArtikel beendet");
+		Main.debug(2, String.format("Artikel für %s geholt; Ergebnis: %d Artikel", this.shop.getName(), this.nArtikel));
 	}
 }

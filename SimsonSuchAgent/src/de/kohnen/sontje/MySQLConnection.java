@@ -5,7 +5,6 @@ package de.kohnen.sontje;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -52,6 +51,26 @@ public class MySQLConnection {
 		return conn;
 	}
 	
+	public static void insertQueryLog(QueryLog ql){
+		conn = getInstance();
+		Timestamp current = new java.sql.Timestamp(Calendar.getInstance().getTime().getTime());
+
+		if(conn != null){
+			Statement query;
+			int result;
+			try {
+				query = conn.createStatement();
+				String sql = String.format("INSERT INTO `QueryLog`(`shopID`, `start`, `ende`, `nSeiten`, `nArtikel`, `status`, `meldung`, `timeCreated`, `timeModified`)"
+						+ " VALUES ('%d','%d','%s','%s','%d','%d','%s','%s')", ql.getShopID(),ql.getStart(), ql.getEnde(), ql.getnArtikel(), ql.getnSeiten(), ql.getStatus(),
+						ql.getMeldung(), current, current);
+				result = query.executeUpdate(sql);
+			} catch (SQLException ex) {
+				ex.printStackTrace();
+			} finally {
+			}
+		}
+	}
+	
 	public static Vector<Shop> getShops(){
 		conn = getInstance();
 		Shop shop = null;
@@ -76,28 +95,6 @@ public class MySQLConnection {
 		return v;
 	}
 	
-	public static boolean isFirstQuery(int id){
-		conn = getInstance();
-		boolean fq = true;
-		if(conn != null){
-			Statement query;
-			try {
-				query = conn.createStatement();
-	 
-				String sql = "SELECT COUNT(*) AS count FROM ShopArtikelZuordnung WHERE shopID = " + id + ";";
-				ResultSet result = query.executeQuery(sql);
-				result.next();
-				if (result.getInt("count") > 0){
-					fq = false;
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
-		}
-		return fq;
-		
-	}
-	 
 	public static HashMap<String, Integer> getArtikelHashMap(){
 		HashMap<String, Integer> hm = new HashMap<String, Integer>();
 		conn = getInstance();
