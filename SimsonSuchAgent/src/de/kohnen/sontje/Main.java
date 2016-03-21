@@ -3,14 +3,7 @@ package de.kohnen.sontje;
  * 
  */
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Vector;
-
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 /**
  * @author dirk.kohnen
@@ -18,11 +11,7 @@ import org.jsoup.select.Elements;
  */
 public class Main {
 
-	private static String shopPath = "http://akf-shop.shopgate.com/category_show_all_items/353631?cat_id=5342586&list_category=Simson+Ersatzteile&sort=relevance_desc&page=";
-	private static int DEBUG = 1; //Bestimmt die debuglevel; 0=Fehler; 1=Einfache Statusmeldung; 2=Detailierte Statusmeldung; 
-	private Elements elements;
-	private int nArtikel = 0;
-	private int nPages = 0;
+	private static int DEBUG = 2; //Bestimmt die debuglevel; 0=Fehler; 1=Einfache Statusmeldung; 2=Detailierte Statusmeldung; 
 	
 	private Vector<Shop> vShops;
 
@@ -45,18 +34,14 @@ public class Main {
 		int i = 0;
 		for (Shop s: vShops){
 			Main.debug(1, "Rufe " + ++i + ". Shop ab");
-			ShopQuery sq = new ShopQuery(s);
+			new ShopQuery(s);
 		}
 		//getArtikel();
 		Main.debug(1, "Beende Programm");
 	}
 
-	private void getArtikel(){
-		Main.debug(1, "Starte Methode 'getArtikel()'");
-	}
-	
 	/**
-	 * Methode f�r Debug-Meldungen
+	 * Methode für Debug-Meldungen
 	 * @param level Debug-Level
 	 * @param text Debug-Meldung
 	 */

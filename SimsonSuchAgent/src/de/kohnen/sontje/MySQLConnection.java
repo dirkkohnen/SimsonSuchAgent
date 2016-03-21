@@ -61,8 +61,8 @@ public class MySQLConnection {
 			try {
 				query = conn.createStatement();
 				String sql = String.format("INSERT INTO `QueryLog`(`shopID`, `start`, `ende`, `nSeiten`, `nArtikel`, `status`, `meldung`, `timeCreated`, `timeModified`)"
-						+ " VALUES ('%d','%d','%s','%s','%d','%d','%s','%s')", ql.getShopID(),ql.getStart(), ql.getEnde(), ql.getnArtikel(), ql.getnSeiten(), ql.getStatus(),
-						ql.getMeldung(), current, current);
+						+ " VALUES ('%d','%s','%s','%d','%d','%s','%s','%s','%s')", ql.getShopID(),ql.getStart(), ql.getEnde(), ql.getnArtikel(), ql.getnSeiten(), ql.getStatus(),
+						ql.getMeldung(), current.toString(), current.toString());
 				result = query.executeUpdate(sql);
 			} catch (SQLException ex) {
 				ex.printStackTrace();

@@ -168,8 +168,7 @@ public class Artikel {
 	}
 	
 	public String toString(){
-		return "ID: " + this.ID + "\r\nTitel: " + this.titel + "\r\nBeschreibung: " + this.beschreibung + "\r\nEAN: " + this.ean + "\r\nHersteller: " + this.hersteller + 
-				"\r\nHersteller-Nr.:" + this.herstellerNr;
+		return "ID: " + this.ID + "Titel: " + this.titel + ";EAN: " + this.ean + ";Hersteller: " + this.hersteller + "Hersteller-Nr.:" + this.herstellerNr;
 	}
 
 }
